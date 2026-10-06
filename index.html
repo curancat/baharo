@@ -88,7 +88,7 @@
             font-style: italic;
         }
         narrador::before {
-            content: "[LOG DO SISTEMA / NARRATIVA]";
+            content: "[narrador]";
             display: block;
             font-size: 0.8em;
             color: var(--terminal-green);
@@ -102,7 +102,7 @@
             text-shadow: 0 0 5px #8a2be2, 0 0 10px #8a2be2;
         }
         diogenes::before {
-            content: "USER: DIÓGENES >>";
+            content: "DIÓGENES >>";
             display: block;
             font-size: 0.8em;
             color: #8a2be2;
@@ -117,7 +117,7 @@
             text-align: right;
         }
         koharu::before {
-            content: "<< USER: KOHARU";
+            content: "<<KOHARU";
             display: block;
             font-size: 0.8em;
             color: #4169e1;
@@ -317,7 +317,7 @@
                     window.scrollTo(0, document.body.scrollHeight);
 
                     // Se estiver dentro de uma tag HTML, pula instantaneamente para o próximo caractere
-                    let speed = insideTag ? 0 : 35; // 35ms por letra
+                    let speed = insideTag ? 0 : 70; // 35ms por letra
                     setTimeout(digitar, speed);
                 } else {
                     // Terminou de digitar a frase
