@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terminal de Arquivos_ Corrompidos</title>
+
+    <style>
+        /* =========================================
+           1. CONFIGURAÇÕES GERAIS E VIBE TERMINAL
+        ========================================= */
+        :root {
+            --bg-color: #050505;
+            --terminal-green: #00ff00;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--terminal-green);
+            font-family: 'Courier New', Courier, monospace;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+            font-size: clamp(14px, 4vw, 18px); 
+            scroll-behavior: smooth; /* Rolagem suave */
+        }
+
+        .crt-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
+                        linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 4px, 6px 100%;
+            pointer-events: none;
+            z-index: 999;
+        }
+
+        .story-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            padding-bottom: 100px; /* Espaço extra no final */
+            box-sizing: border-box;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* =========================================
+           2. LOCAIS PARA IMAGENS DE FUNDO
+        ========================================= */
+        .background-scene {
+            width: 100%;
+            height: 250px;
+            margin: 20px 0;
+            border: 1px dashed var(--terminal-green);
+            background-size: cover;
+            background-position: center;
+            position: relative;
+            filter: grayscale(50%) contrast(120%) sepia(20%);
+        }
+
+        /* Efeito de revelação para as imagens */
+        .reveal-image {
+            animation: img-glitch-reveal 0.6s ease-in-out forwards;
+        }
+        @keyframes img-glitch-reveal {
+            0% { opacity: 0; filter: contrast(500%) invert(1); transform: translateX(-10px); }
+            50% { opacity: 1; filter: contrast(200%) invert(0); transform: translateX(10px); }
+            100% { filter: grayscale(50%) contrast(120%) sepia(20%); transform: translateX(0); }
+        }
+
+        /* =========================================
+           3. TAGS PERSONALIZADAS DOS PERSONAGENS
+        ========================================= */
+        narrador, diogenes, koharu {
+            display: block;
+            margin: 15px 0;
+            padding: 10px 15px;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 4px;
+            position: relative;
+            line-height: 1.5;
+        }
+
+        narrador {
+            color: #d3d3d3;
+            border-left: 3px solid var(--terminal-green);
+            font-style: italic;
+        }
+        narrador::before {
+            content: "[LOG DO SISTEMA / NARRATIVA]";
+            display: block;
+            font-size: 0.8em;
+            color: var(--terminal-green);
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+
+        diogenes {
+            color: #ffea00;
+            border-left: 4px solid #8a2be2;
+            text-shadow: 0 0 5px #8a2be2, 0 0 10px #8a2be2;
+        }
+        diogenes::before {
+            content: "USER: DIÓGENES >>";
+            display: block;
+            font-size: 0.8em;
+            color: #8a2be2;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        koharu {
+            color: #4169e1;
+            border-left: 4px solid #4169e1;
+            text-shadow: 0 0 5px #4169e1, 0 0 15px rgba(65, 105, 225, 0.5);
+            text-align: right;
+        }
+        koharu::before {
+            content: "<< USER: KOHARU";
+            display: block;
+            font-size: 0.8em;
+            color: #4169e1;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        /* =========================================
+           4. ANIMAÇÕES E GLITCHS (BUGANDO)
+        ========================================= */
+        .glitch-text {
+            display: inline-block;
+            position: relative;
+            animation: glitch-anim 2s infinite linear alternate-reverse;
+        }
+
+        @keyframes glitch-anim {
+            0% { text-shadow: 2px 0 red, -2px 0 blue; transform: translate(0); }
+            20% { text-shadow: -2px 0 red, 2px 0 blue; transform: translate(-2px, 1px); }
+            40% { text-shadow: 2px 0 red, -2px 0 blue; transform: translate(2px, -1px); }
+            60% { text-shadow: -2px 0 red, 2px 0 blue; transform: translate(-1px, 2px); }
+            80% { text-shadow: 2px 0 red, -2px 0 blue; transform: translate(1px, -2px); }
+            100% { text-shadow: -2px 0 red, 2px 0 blue; transform: translate(0); }
+        }
+
+        .heavy-glitch-active {
+            animation: screen-shake 0.2s;
+            filter: invert(10%) hue-rotate(90deg);
+        }
+
+        @keyframes screen-shake {
+            0% { transform: translate(3px, 2px) rotate(0deg); }
+            20% { transform: translate(-3px, -2px) rotate(-1deg); }
+            40% { transform: translate(-3px, 2px) rotate(1deg); }
+            60% { transform: translate(3px, -2px) rotate(0deg); }
+            80% { transform: translate(1px, -1px) rotate(1deg); }
+            100% { transform: translate(0, 0) rotate(0deg); }
+        }
+
+        /* =========================================
+           5. EFEITO DE MÁQUINA DE ESCREVER (NOVO)
+        ========================================= */
+        .story-element {
+            display: none; /* Oculta tudo até chegar a vez */
+        }
+        
+        .typing::after {
+            content: '█';
+            animation: blink 1s step-end infinite;
+            margin-left: 5px;
+            color: var(--terminal-green);
+        }
+
+        @keyframes blink { 50% { opacity: 0; } }
+
+        /* =========================================
+           6. BOTÃO DE INÍCIO
+        ========================================= */
+        #start-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background-color: var(--bg-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        button.start-btn {
+            background: transparent;
+            color: var(--terminal-green);
+            border: 2px solid var(--terminal-green);
+            padding: 15px 30px;
+            font-size: 20px;
+            font-family: 'Courier New', Courier, monospace;
+            cursor: pointer;
+            box-shadow: 0 0 10px var(--terminal-green);
+        }
+        button.start-btn:active {
+            background: var(--terminal-green);
+            color: black;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="crt-overlay"></div>
+
+    <div id="start-screen">
+        <button class="start-btn" onclick="iniciarSistema()">[INICIAR]</button>
+    </div>
+
+    <audio id="bg-music" loop>
+        <source src="LINK_DA_SUA_MUSICA_AQUI.mp3" type="audio/mpeg">
+    </audio>
+
+    <!-- =======================================================
+         ÁREA PARA ESCREVER A HISTÓRIA
+         Adicione a classe "story-element" a tudo que deve entrar na sequência.
+    ======================================================== -->
+    <div class="story-container" id="story-container">
+        
+        <narrador class="story-element">Conexão estabelecida. Terminal 404 carregando pacotes de memória...</narrador>
+        
+        <diogenes class="story-element">Alguém na escuta? O sinal aqui embaixo está terrível.</diogenes>
+        
+        <!-- Exemplo de imagem (coloquei um placeholder cinza como teste) -->
+        <div class="background-scene story-element" style="background-image: url('https://via.placeholder.com/800x250/111111/00ff00?text=FOTO_ARQUIVO_CORROMPIDO.JPG');"></div>
+        
+        <koharu class="story-element">Consigo te ouvir perfeitamente, Diógenes. Encontrou o servidor principal?</koharu>
+        
+        <narrador class="story-element">Aviso: Presença de anomalia detectada no setor B. <span class="glitch-text">SISTEMA COMPROMETIDO</span>.</narrador>
+        
+        <diogenes class="story-element">Acho que não estamos sozinhos aqui...</diogenes>
+        
+    </div>
+
+    <!-- =======================================================
+         SCRIPTS (Controle da música, escrita e glitch)
+    ======================================================== -->
+    <script>
+        let storyElements = [];
+        let currentIndex = 0;
+        let isTyping = false;
+
+        function iniciarSistema() {
+            document.getElementById('start-screen').style.display = 'none';
+            
+            // Inicia música
+            let musica = document.getElementById('bg-music');
+            try {
+                musica.play();
+                musica.volume = 0.4; 
+            } catch (e) {
+                console.log("Música bloqueada.");
+            }
+
+            // Prepara a sequência de textos/imagens
+            prepararSequencia();
+        }
+
+        function prepararSequencia() {
+            const container = document.getElementById('story-container');
+            // Pega todos os elementos que possuem a classe 'story-element'
+            storyElements = Array.from(container.querySelectorAll('.story-element'));
+            
+            storyElements.forEach(el => {
+                // Se for um texto (narrador, diogenes, koharu), guardamos o texto original e apagamos da tela
+                if (!el.classList.contains('background-scene')) {
+                    el.dataset.textoOriginal = el.innerHTML;
+                    el.innerHTML = '';
+                }
+            });
+
+            // Inicia o motor de exibição após 1 segundo
+            setTimeout(exibirProximoElemento, 1000);
+        }
+
+        function exibirProximoElemento() {
+            if (currentIndex >= storyElements.length) return; // Fim da história
+
+            const el = storyElements[currentIndex];
+            el.style.display = 'block'; // Torna visível
+
+            // Rola a tela para baixo
+            window.scrollTo(0, document.body.scrollHeight);
+
+            if (el.classList.contains('background-scene')) {
+                // Se for imagem, adiciona a animação de revelação e espera 1.5s antes do próximo
+                el.classList.add('reveal-image');
+                currentIndex++;
+                setTimeout(exibirProximoElemento, 1500); 
+            } else {
+                // Se for texto, inicia o efeito de digitação
+                digitarTexto(el);
+            }
+        }
+
+        function digitarTexto(elemento) {
+            const textoHTML = elemento.dataset.textoOriginal;
+            elemento.classList.add('typing');
+            
+            // Para suportar tags HTML dentro do texto (como o <span> do glitch), 
+            // simulamos a digitação injetando caractere por caractere, mas validando as tags.
+            let charIndex = 0;
+            let currentHTML = "";
+            let insideTag = false;
+
+            function digitar() {
+                if (charIndex < textoHTML.length) {
+                    let char = textoHTML.charAt(charIndex);
+                    currentHTML += char;
+                    elemento.innerHTML = currentHTML;
+                    
+                    // Verifica se está dentro de uma tag HTML para não quebrar o código
+                    if (char === '<') insideTag = true;
+                    if (char === '>') insideTag = false;
+
+                    charIndex++;
+                    window.scrollTo(0, document.body.scrollHeight);
+
+                    // Se estiver dentro de uma tag HTML, pula instantaneamente para o próximo caractere
+                    let speed = insideTag ? 0 : 35; // 35ms por letra
+                    setTimeout(digitar, speed);
+                } else {
+                    // Terminou de digitar a frase
+                    elemento.classList.remove('typing');
+                    currentIndex++;
+                    // Espera 1 segundo antes de chamar a próxima fala/imagem
+                    setTimeout(exibirProximoElemento, 1000);
+                }
+            }
+            digitar();
+        }
+
+        // Glitch aleatório da tela
+        function glitchAleatorio() {
+            let body = document.body;
+            if (Math.random() < 0.1) { // 10% de chance
+                body.classList.add('heavy-glitch-active');
+                setTimeout(() => {
+                    body.classList.remove('heavy-glitch-active');
+                }, 200); 
+            }
+        }
+        setInterval(glitchAleatorio, 2000);
+    </script>
+</body>
+</html>
