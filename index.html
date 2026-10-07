@@ -219,35 +219,40 @@
     ======================================================== -->
     <div class="story-container" id="story-container">
         
-        <!-- Exemplo de imagem (coloquei um placeholder cinza como teste) -->
+        <!-- Exemplo de imagem -->
         <div class="background-scene story-element" style="background-image: url('https://receitagratis.com/wp-content/uploads/2023/10/por-que-devemos-dormir-com-a-porta-do-quarto-fechada.jpg');"></div>
+        
         <koharu class="story-element">.....</koharu>
         <koharu class="story-element">isso é mais dificil do que pensei....</koharu>
         <koharu class="story-element">......</koharu>
         <koharu class="story-element">será que devo...?</koharu>
         <koharu class="story-element">.......</koharu>
 
-        <div class="babackground-scene story-element" style="background-image: url('');"></div>
+        <div class="background-scene story-element" style="background-image: url('');"></div>
+        
         <koharu class='story-element'>..........</koharu>
         <koharu class='story-element'>....eu.....................por que me sinto um idiota?........</koharu>
-        <koharu class='story-element'>...eu......eu nem coneço ele direito....</koharu>
+        <koharu class='story-element'>...eu......eu nem conheço ele direito....</koharu>
         <koharu class='story-element'>só conversamos uma vez....</koharu>
         <koharu class='story-element'>..........</koharu>
         <koharu class='story-element'>só...conversamos uma vez....</koharu>
         
-        <div class="babackground-scene story-element" style="background-image: url('');"></div>
+        <div class="background-scene story-element" style="background-image: url('');"></div>
+        
         <koharu class='story-element'>...</koharu>
         <koharu class='story-element'>não devia ter jogado aquele sapato nele.....</koharu>
         <koharu class='story-element'>...acho que...................</koharu>
         <koharu class='story-element'>é, um pedido de desculpas vai ser minha brecha para essa entrevista...</koharu>
         <koharu class='story-element'>.....</koharu>
         <koharu class='story-element'>eu consigo....</koharu>
+        
     </div>
 
     <!-- =======================================================
          SCRIPTS (Controle da música, escrita e glitch)
     ======================================================== -->
     <script>
+       <script>
         let storyElements = [];
         let currentIndex = 0;
         let isTyping = false;
@@ -295,10 +300,10 @@
             window.scrollTo(0, document.body.scrollHeight);
 
             if (el.classList.contains('background-scene')) {
-                // Se for imagem, adiciona a animação de revelação e espera 1.5s antes do próximo
+                // Se for imagem, adiciona a animação de revelação e espera 2s antes do próximo
                 el.classList.add('reveal-image');
                 currentIndex++;
-                setTimeout(exibirProximoElemento, 1500); 
+                setTimeout(exibirProximoElemento, 2000); 
             } else {
                 // Se for texto, inicia o efeito de digitação
                 digitarTexto(el);
@@ -309,8 +314,7 @@
             const textoHTML = elemento.dataset.textoOriginal;
             elemento.classList.add('typing');
             
-            // Para suportar tags HTML dentro do texto (como o <span> do glitch), 
-            // simulamos a digitação injetando caractere por caractere, mas validando as tags.
+            // Para suportar tags HTML dentro do texto, simulamos a digitação injetando caractere por caractere
             let charIndex = 0;
             let currentHTML = "";
             let insideTag = false;
@@ -328,8 +332,16 @@
                     charIndex++;
                     window.scrollTo(0, document.body.scrollHeight);
 
-                    // Se estiver dentro de uma tag HTML, pula instantaneamente para o próximo caractere
-                    let speed = insideTag ? 0 : 90; // 35ms por letra
+                    // --- SISTEMA DE PAUSAS ---
+                    let speed;
+                    if (insideTag) {
+                        speed = 0; // Tags HTML entram instantaneamente
+                    } else if (char === '.' || char === '?') {
+                        speed = 300; // Pontos e interrogações fazem o sistema demorar mais (300ms)
+                    } else {
+                        speed = 90; // Letras normais usam a velocidade que você definiu (90ms)
+                    }
+
                     setTimeout(digitar, speed);
                 } else {
                     // Terminou de digitar a frase
@@ -353,6 +365,7 @@
             }
         }
         setInterval(glitchAleatorio, 2000);
+    </script>
     </script>
 </body>
 </html>
