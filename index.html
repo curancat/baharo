@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Baharo</title>
+    <title>Baharo </title>
 
     <style>
         /* =========================================
@@ -20,11 +20,12 @@
             font-family: 'Courier New', Courier, monospace;
             margin: 0;
             padding: 0;
-            overflow-x: hidden;
+            overflow: hidden; /* Em uma VN, a tela não rola */
             font-size: clamp(14px, 4vw, 18px); 
-            scroll-behavior: smooth; /* Rolagem suave */
+            user-select: none;
         }
 
+        /* Efeito de TV CRT (Fica por cima de tudo) */
         .crt-overlay {
             position: fixed;
             top: 0; left: 0; width: 100vw; height: 100vh;
@@ -32,115 +33,141 @@
                         linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
             background-size: 100% 4px, 6px 100%;
             pointer-events: none;
-            z-index: 999;
-        }
-
-        .story-container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            padding-bottom: 100px; /* Espaço extra no final */
-            box-sizing: border-box;
-            position: relative;
-            z-index: 10;
+            z-index: 9999;
         }
 
         /* =========================================
-           2. LOCAIS PARA IMAGENS DE FUNDO
+           2. INTERFACE DO JOGO (VN LAYOUT)
         ========================================= */
-        .background-scene {
-            width: 100%;
-            height: 250px;
-            margin: 20px 0;
-            border: 1px dashed var(--terminal-green);
-            background-size: cover;
-            background-position: center;
+        #game-screen {
             position: relative;
-            filter: grayscale(50%) contrast(120%) sepia(20%);
+            width: 100vw;
+            height: 100vh;
+            display: none; /* Só aparece após clicar em Iniciar */
+            flex-direction: column;
         }
 
-        /* Efeito de revelação para as imagens */
+        /* Área da Imagem de Fundo */
+        #bg-layer {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-size: cover;
+            background-position: center;
+            filter: grayscale(50%) contrast(120%) sepia(20%);
+            transition: background-image 0.2s ease-in-out;
+            z-index: 1;
+        }
+
         .reveal-image {
             animation: img-glitch-reveal 0.6s ease-in-out forwards;
         }
+
         @keyframes img-glitch-reveal {
             0% { opacity: 0; filter: contrast(500%) invert(1); transform: translateX(-10px); }
             50% { opacity: 1; filter: contrast(200%) invert(0); transform: translateX(10px); }
             100% { filter: grayscale(50%) contrast(120%) sepia(20%); transform: translateX(0); }
         }
 
-        /* =========================================
-           3. TAGS PERSONALIZADAS DOS PERSONAGENS
-        ========================================= */
-        narrador, diogenes, koharu {
-            display: block;
-            margin: 15px 0;
-            padding: 10px 15px;
-            background: rgba(0, 0, 0, 0.6);
-            border-radius: 4px;
-            position: relative;
-            line-height: 1.5;
+        /* Caixa de Diálogo (Fica no rodapé) */
+        #dialogue-box {
+            position: absolute;
+            bottom: 5%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 800px;
+            height: 150px;
+            background: rgba(0, 0, 0, 0.85);
+            border: 2px solid var(--terminal-green);
+            padding: 20px;
+            box-sizing: border-box;
+            z-index: 10;
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.2);
+            cursor: pointer; /* Indica que pode clicar para avançar */
         }
 
-        narrador {
-            color: #d3d3d3;
-            border-left: 3px solid var(--terminal-green);
-            font-style: italic;
-        }
-        narrador::before {
-            content: "[narrador]";
-            display: block;
-            font-size: 0.8em;
-            color: var(--terminal-green);
-            margin-bottom: 5px;
+        /* Nome do Personagem que está falando */
+        #speaker-name {
+            font-size: 0.9em;
+            font-weight: bold;
+            margin-bottom: 10px;
             text-transform: uppercase;
         }
 
-        diogenes {
-            color: #ffea00;
-            border-left: 4px solid #8a2be2;
-            text-shadow: 0 0 5px #8a2be2, 0 0 10px #8a2be2;
-        }
-        diogenes::before {
-            content: "DIÓGENES >>";
-            display: block;
-            font-size: 0.8em;
-            color: #8a2be2;
-            margin-bottom: 5px;
-            font-weight: bold;
+        /* O texto sendo digitado */
+        #dialogue-text {
+            line-height: 1.5;
+            text-shadow: 0 0 3px currentColor;
         }
 
-        koharu {
-            color: #4169e1;
-            border-left: 4px solid #4169e1;
-            text-shadow: 0 0 5px #4169e1, 0 0 15px rgba(65, 105, 225, 0.5);
-            text-align: right;
+        .typing::after {
+            content: '█';
+            animation: blink 1s step-end infinite;
+            margin-left: 5px;
         }
-        koharu::before {
-            content: "<<KOHARO";
-            display: block;
-            font-size: 0.8em;
-            color: #4169e1;
-            margin-bottom: 5px;
-            font-weight: bold;
+        @keyframes blink { 50% { opacity: 0; } }
+
+        /* =========================================
+           3. SISTEMA DE ESCOLHAS
+        ========================================= */
+        #choices-box {
+            position: absolute;
+            top: 40%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            z-index: 20;
+            width: 80%;
+            max-width: 500px;
+        }
+
+        .choice-btn {
+            background: rgba(0, 0, 0, 0.9);
+            color: var(--terminal-green);
+            border: 1px dashed var(--terminal-green);
+            padding: 15px;
+            font-size: 18px;
+            font-family: 'Courier New', Courier, monospace;
+            cursor: pointer;
+            text-align: center;
+            transition: 0.2s;
+        }
+
+        .choice-btn:hover {
+            background: var(--terminal-green);
+            color: #000;
+            box-shadow: 0 0 15px var(--terminal-green);
         }
 
         /* =========================================
-           4. ANIMAÇÕES E GLITCHS (BUGANDO)
+           4. BOTÃO DE INÍCIO E GLITCHES
         ========================================= */
-        .glitch-text {
-            display: inline-block;
-            position: relative;
-            animation: glitch-anim 2s infinite linear alternate-reverse;
+        #start-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background-color: var(--bg-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
         }
 
-        @keyframes glitch-anim {
-            0% { text-shadow: 2px 0 red, -2px 0 blue; transform: translate(0); }
-            20% { text-shadow: -2px 0 red, 2px 0 blue; transform: translate(-2px, 1px); }
-            40% { text-shadow: 2px 0 red, -2px 0 blue; transform: translate(2px, -1px); }
-            60% { text-shadow: -2px 0 red, 2px 0 blue; transform: translate(-1px, 2px); }
-            80% { text-shadow: 2px 0 red, -2px 0 blue; transform: translate(1px, -2px); }
-            100% { text-shadow: -2px 0 red, 2px 0 blue; transform: translate(0); }
+        button.start-btn {
+            background: transparent;
+            color: var(--terminal-green);
+            border: 2px solid var(--terminal-green);
+            padding: 15px 30px;
+            font-size: 20px;
+            font-family: 'Courier New', Courier, monospace;
+            cursor: pointer;
+            box-shadow: 0 0 10px var(--terminal-green);
+        }
+
+        button.start-btn:active {
+            background: var(--terminal-green);
+            color: black;
         }
 
         .heavy-glitch-active {
@@ -156,108 +183,102 @@
             80% { transform: translate(1px, -1px) rotate(1deg); }
             100% { transform: translate(0, 0) rotate(0deg); }
         }
-
-        /* =========================================
-           5. EFEITO DE MÁQUINA DE ESCREVER (NOVO)
-        ========================================= */
-        .story-element {
-            display: none; /* Oculta tudo até chegar a vez */
-        }
-        
-        .typing::after {
-            content: '█';
-            animation: blink 1s step-end infinite;
-            margin-left: 5px;
-            color: var(--terminal-green);
-        }
-
-        @keyframes blink { 50% { opacity: 0; } }
-
-        /* =========================================
-           6. BOTÃO DE INÍCIO
-        ========================================= */
-        #start-screen {
-            position: fixed;
-            top: 0; left: 0; width: 100vw; height: 100vh;
-            background-color: var(--bg-color);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-        button.start-btn {
-            background: transparent;
-            color: var(--terminal-green);
-            border: 2px solid var(--terminal-green);
-            padding: 15px 30px;
-            font-size: 20px;
-            font-family: 'Courier New', Courier, monospace;
-            cursor: pointer;
-            box-shadow: 0 0 10px var(--terminal-green);
-        }
-        button.start-btn:active {
-            background: var(--terminal-green);
-            color: black;
-        }
     </style>
 </head>
 <body>
 
     <div class="crt-overlay"></div>
 
-    <div id="start-screen">
-        <button class="start-btn" onclick="iniciarSistema()">[INICIAR]</button>
-    </div>
-
     <audio id="bg-music" loop>
         <source src="love.mp3" type="audio/mpeg">
     </audio>
 
-    <!-- =======================================================
-         ÁREA PARA ESCREVER A HISTÓRIA
-         Adicione a classe "story-element" a tudo que deve entrar na sequência.
-    ======================================================== -->
-    <div class="story-container" id="story-container">
-        
-        <!-- Exemplo de imagem -->
-        <div class="background-scene story-element" style="background-image: url('https://receitagratis.com/wp-content/uploads/2023/10/por-que-devemos-dormir-com-a-porta-do-quarto-fechada.jpg');"></div>
-        
-        <koharu class="story-element">.....</koharu>
-        <koharu class="story-element">isso é mais dificil do que pensei....</koharu>
-        <koharu class="story-element">......</koharu>
-        <koharu class="story-element">será que devo...?</koharu>
-        <koharu class="story-element">.......</koharu>
+    <div id="start-screen">
+        <button class="start-btn" onclick="iniciarSistema()">[INICIAR]</button>
+    </div>
 
-        <div class="background-scene story-element" style="background-image: url('');"></div>
+    <!-- Interface da Visual Novel (Onde o jogo realmente acontece) -->
+    <div id="game-screen" onclick="avancarHistoria()">
+        <div id="bg-layer"></div>
         
-        <koharu class='story-element'>..........</koharu>
-        <koharu class='story-element'>....eu.....................por que me sinto um idiota?........</koharu>
-        <koharu class='story-element'>...eu......eu nem conheço ele direito....</koharu>
-        <koharu class='story-element'>só conversamos uma vez....</koharu>
-        <koharu class='story-element'>..........</koharu>
-        <koharu class='story-element'>só...conversamos uma vez....</koharu>
-        
-        <div class="background-scene story-element" style="background-image: url('');"></div>
-        
-        <koharu class='story-element'>...</koharu>
-        <koharu class='story-element'>não devia ter jogado aquele sapato nele.....</koharu>
-        <koharu class='story-element'>...acho que...................</koharu>
-        <koharu class='story-element'>é, um pedido de desculpas vai ser minha brecha para essa entrevista...</koharu>
-        <koharu class='story-element'>.....</koharu>
-        <koharu class='story-element'>eu consigo....</koharu>
-        
+        <div id="choices-box"></div>
+
+        <div id="dialogue-box">
+            <div id="speaker-name"></div>
+            <div id="dialogue-text" class="typing"></div>
+        </div>
     </div>
 
     <!-- =======================================================
-         SCRIPTS (Controle da música, escrita e glitch)
+         ROTEIRO DO JOGO (INVISÍVEL NA TELA)
+         Escreva as tags aqui livremente, o script vai ler e executar!
     ======================================================== -->
-       <script>
-        let storyElements = [];
-        let currentIndex = 0;
+    <div id="roteiro" style="display: none;">
+        
+        <!-- CENA 1: INÍCIO -->
+        <cena id="cena-inicio">
+            <bg url="https://receitagratis.com/wp-content/uploads/2023/10/por-que-devemos-dormir-com-a-porta-do-quarto-fechada.jpg"></bg>
+            <koharu>.....</koharu>
+            <koharu>isso é mais dificil do que pensei....</koharu>
+            <koharu>......</koharu>
+            <koharu>será que devo...?</koharu>
+            <koharu>.......</koharu>
+            
+            <!-- A tag bg vazia apaga a imagem -->
+            <bg url=""></bg>
+            
+            <koharu>..........</koharu>
+            <koharu>....eu.....................por que me sinto um idiota?........</koharu>
+            <koharu>só conversamos uma vez....</koharu>
+            <koharu>............</koharu>
+            <koharu>quer dizer... eu joguei um sapato nele, mas é porque.. eu tava com medo....</koharu>
+            <koharu>será..que eu devo?....</koharu>
+            
+            <!-- Tag de escolhas (Para a história e mostra os botões) -->
+            <escolhas>
+                <opcao ir-para="cena-desculpas">bater na porta</opcao>
+                <opcao ir-para="cena-desistir">esquecer isso, e dar meia volta</opcao>
+            </escolhas>
+        </cena>
+
+        <!-- CENA 2: RAMIFICAÇÃO A (PEDIR DESCULPAS) -->
+        <cena id="cena-desculpas">
+           <narrador>ele bate na porta....</narrador>
+            <narrador>de inicio um certo grau de silêncio domina o ambiente...</narrador>
+            <narrador>ate que a porta abre devagar...</narrador>
+        </cena>
+
+        <!-- CENA 3: RAMIFICAÇÃO B (DESISTIR) -->
+        <cena id="cena-desistir">
+            <narrador>koharo está com medo nesse momento..</narrador>
+            <narrador>sua paranoia fala mais alto nesse momento...</narrador>
+            <narrador>pensamentos como:('e se ele me matar..','e se eu virar escravo dele..?'), ficam em loop eterno em sua cabeça...</narrador>
+        </cena>
+
+    </div>
+
+    <!-- =======================================================
+         MOTOR DO JOGO (JAVASCRIPT)
+    ======================================================== -->
+    <script>
+        // Configuração visual de cada personagem (Cores originais)
+        const personagens = {
+            narrador: { nome: "[NARRADOR]", cor: "#d3d3d3", borda: "#00ff00" },
+            diogenes: { nome: "DIÓGENES >>", cor: "#ffea00", borda: "#8a2be2" },
+            koharu:   { nome: "<<KOHARO", cor: "#4169e1", borda: "#4169e1" }
+        };
+
+        // Variáveis de Controle
+        let elementosDaCenaAtual = [];
+        let indiceAtual = 0;
         let isTyping = false;
+        let charIndex = 0;
+        let fullText = "";
+        let typingTimeout;
 
         function iniciarSistema() {
             document.getElementById('start-screen').style.display = 'none';
+            document.getElementById('game-screen').style.display = 'flex';
             
             // Inicia música
             let musica = document.getElementById('bg-music');
@@ -265,98 +286,162 @@
                 musica.play();
                 musica.volume = 0.4; 
             } catch (e) {
-                console.log("Música bloqueada.");
+                console.log("Música bloqueada pelo navegador.");
             }
 
-            // Prepara a sequência de textos/imagens
-            prepararSequencia();
+            // Inicia a primeira cena
+            carregarCena('cena-inicio');
         }
 
-        function prepararSequencia() {
-            const container = document.getElementById('story-container');
-            // Pega todos os elementos que possuem a classe 'story-element'
-            storyElements = Array.from(container.querySelectorAll('.story-element'));
+        // Lê a tag <cena> e prepara as ações
+        function carregarCena(idDaCena) {
+            const cenaDOM = document.querySelector(`cena#${idDaCena}`);
+            if (!cenaDOM) {
+                console.error("Cena não encontrada:", idDaCena);
+                return;
+            }
+
+            // Filtra os nós para pegar apenas elementos (ignora espaços em branco/texto quebra de linha do HTML)
+            elementosDaCenaAtual = Array.from(cenaDOM.children);
+            indiceAtual = 0;
             
-            storyElements.forEach(el => {
-                // Se for um texto (narrador, diogenes, koharu), guardamos o texto original e apagamos da tela
-                if (!el.classList.contains('background-scene')) {
-                    el.dataset.textoOriginal = el.innerHTML;
-                    el.innerHTML = '';
-                }
-            });
-
-            // Inicia o motor de exibição após 1 segundo
-            setTimeout(exibirProximoElemento, 1000);
+            // Limpa coisas residuais na tela
+            document.getElementById('choices-box').innerHTML = "";
+            document.getElementById('dialogue-box').style.display = "block";
+            
+            avancarHistoria();
         }
 
-        function exibirProximoElemento() {
-            if (currentIndex >= storyElements.length) return; // Fim da história
+        // Executa a próxima ação (fundo, texto ou escolha)
+        function avancarHistoria() {
+            // 1. Se estiver digitando texto, pular animação (efeito VN)
+            if (isTyping) {
+                clearTimeout(typingTimeout);
+                document.getElementById('dialogue-text').innerHTML = fullText;
+                document.getElementById('dialogue-text').classList.remove('typing');
+                isTyping = false;
+                return;
+            }
 
-            const el = storyElements[currentIndex];
-            el.style.display = 'block'; // Torna visível
+            // 2. Se acabou a cena, não faz nada
+            if (indiceAtual >= elementosDaCenaAtual.length) return;
 
-            // Rola a tela para baixo
-            window.scrollTo(0, document.body.scrollHeight);
+            // Pega o elemento atual do roteiro
+            const el = elementosDaCenaAtual[indiceAtual];
+            const tag = el.tagName.toLowerCase();
+            indiceAtual++;
 
-            if (el.classList.contains('background-scene')) {
-                // Se for imagem, adiciona a animação de revelação e espera 2s antes do próximo
-                el.classList.add('reveal-image');
-                currentIndex++;
-                setTimeout(exibirProximoElemento, 2000); 
+            // Executa a ação dependendo da Tag
+            if (tag === 'bg') {
+                mudarFundo(el.getAttribute('url'));
+                // Logo após mudar fundo, avança para a próxima ação automaticamente
+                avancarHistoria(); 
+            } 
+            else if (tag === 'escolhas') {
+                mostrarEscolhas(el);
+            } 
+            else {
+                // Se não for BG nem ESCOLHAS, é um personagem falando.
+                mostrarFala(tag, el.innerHTML);
+            }
+        }
+
+        // Troca o fundo
+        function mudarFundo(url) {
+            const bgLayer = document.getElementById('bg-layer');
+            if (!url || url.trim() === "") {
+                bgLayer.style.backgroundImage = "none";
+                bgLayer.classList.remove('reveal-image');
             } else {
-                // Se for texto, inicia o efeito de digitação
-                digitarTexto(el);
+                bgLayer.style.backgroundImage = `url('${url}')`;
+                bgLayer.classList.remove('reveal-image');
+                void bgLayer.offsetWidth; // Força reinício da animação CSS
+                bgLayer.classList.add('reveal-image');
             }
         }
 
-        function digitarTexto(elemento) {
-            const textoHTML = elemento.dataset.textoOriginal;
-            elemento.classList.add('typing');
+        // Mostra a fala do personagem apagando a anterior
+        function mostrarFala(personagemTag, textoHTML) {
+            const caixaDeDialogo = document.getElementById('dialogue-box');
+            const speakerNameEl = document.getElementById('speaker-name');
+            const dialogueTextEl = document.getElementById('dialogue-text');
+
+            // Limpa o texto anterior
+            dialogueTextEl.innerHTML = "";
+            fullText = textoHTML;
+
+            // Pega as configurações do personagem (se existir, senão usa padrão)
+            const config = personagens[personagemTag] || { nome: personagemTag.toUpperCase(), cor: "#00ff00", borda: "#00ff00" };
+
+            // Aplica as cores visuais
+            caixaDeDialogo.style.borderColor = config.borda;
+            speakerNameEl.innerText = config.nome;
+            speakerNameEl.style.color = config.cor;
+            dialogueTextEl.style.color = config.cor;
             
-            // Para suportar tags HTML dentro do texto, simulamos a digitação injetando caractere por caractere
-            let charIndex = 0;
-            let currentHTML = "";
-            let insideTag = false;
-
-            function digitar() {
-                if (charIndex < textoHTML.length) {
-                    let char = textoHTML.charAt(charIndex);
-                    currentHTML += char;
-                    elemento.innerHTML = currentHTML;
-                    
-                    // Verifica se está dentro de uma tag HTML para não quebrar o código
-                    if (char === '<') insideTag = true;
-                    if (char === '>') insideTag = false;
-
-                    charIndex++;
-                    window.scrollTo(0, document.body.scrollHeight);
-
-                    // --- SISTEMA DE PAUSAS ---
-                    let speed;
-                    if (insideTag) {
-                        speed = 0; // Tags HTML entram instantaneamente
-                    } else if (char === '.' || char === '?') {
-                        speed = 300; // Pontos e interrogações fazem o sistema demorar mais (300ms)
-                    } else {
-                        speed = 90; // Letras normais usam a velocidade que você definiu (90ms)
-                    }
-
-                    setTimeout(digitar, speed);
-                } else {
-                    // Terminou de digitar a frase
-                    elemento.classList.remove('typing');
-                    currentIndex++;
-                    // Espera 1 segundo antes de chamar a próxima fala/imagem
-                    setTimeout(exibirProximoElemento, 1000);
-                }
+            if (config.nome === "<<KOHARU") {
+                speakerNameEl.style.textAlign = "right";
+            } else {
+                speakerNameEl.style.textAlign = "left";
             }
-            digitar();
+
+            // Inicia o efeito de máquina de escrever
+            isTyping = true;
+            charIndex = 0;
+            dialogueTextEl.classList.add('typing');
+            digitarTexto();
         }
 
-        // Glitch aleatório da tela
+        // Efeito de digitação letra por letra
+        function digitarTexto() {
+            if (charIndex < fullText.length && isTyping) {
+                // Aqui podemos adicionar suporte pra não quebrar tags HTML se você usar <b> ou algo do tipo
+                // Mas de forma simples:
+                charIndex++;
+                let currentText = fullText.substring(0, charIndex);
+                document.getElementById('dialogue-text').innerHTML = currentText;
+
+                let charAtual = fullText.charAt(charIndex - 1);
+                let speed = (charAtual === '.' || charAtual === '?') ? 250 : 70; // Pontos pausam mais
+
+                typingTimeout = setTimeout(digitarTexto, speed);
+            } else {
+                isTyping = false;
+                document.getElementById('dialogue-text').classList.remove('typing');
+            }
+        }
+
+        // Monta os botões de escolhas baseados na tag <opcao>
+        function mostrarEscolhas(escolhasEl) {
+            const caixaDeOpcoes = document.getElementById('choices-box');
+            const caixaDeDialogo = document.getElementById('dialogue-box');
+            
+            // Oculta a caixa de diálogo enquanto escolhe para dar mais foco
+            caixaDeDialogo.style.display = "none";
+            caixaDeOpcoes.innerHTML = ""; 
+
+            const opcoes = Array.from(escolhasEl.children);
+            
+            opcoes.forEach(opcao => {
+                let btn = document.createElement('button');
+                btn.className = 'choice-btn';
+                btn.innerText = opcao.innerHTML;
+                
+                // Ao clicar, vai para a cena configurada
+                btn.onclick = (e) => {
+                    e.stopPropagation(); // Impede que conte como clique pra avançar a tela
+                    caixaDeOpcoes.innerHTML = "";
+                    caixaDeDialogo.style.display = "block";
+                    carregarCena(opcao.getAttribute('ir-para'));
+                };
+                caixaDeOpcoes.appendChild(btn);
+            });
+        }
+
+        // Glitch aleatório da tela (mantido do original)
         function glitchAleatorio() {
             let body = document.body;
-            if (Math.random() < 0.1) { // 10% de chance
+            if (Math.random() < 0.05) { // 5% de chance
                 body.classList.add('heavy-glitch-active');
                 setTimeout(() => {
                     body.classList.remove('heavy-glitch-active');
@@ -364,6 +449,7 @@
             }
         }
         setInterval(glitchAleatorio, 2000);
+
     </script>
 </body>
 </html>
