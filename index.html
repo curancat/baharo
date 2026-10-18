@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>O Grimório Vivo</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <!-- Tela de Login -->
+    <div id="login-screen" class="screen alive-container">
+        <h1>Identifique-se, Viajante</h1>
+        <p>A magia antiga exige um nome para revelar seus segredos.</p>
+        <input type="text" id="username-input" placeholder="Seu nome" autocomplete="off">
+        <button id="btn-login" class="btn-mystic">Selar Contrato</button>
+    </div>
+
+    <!-- Tela Principal do App -->
+    <div id="app-screen" class="screen hidden">
+        <header class="alive-container">
+            <h1 id="user-title">Grimório</h1>
+            <button id="btn-logout" class="btn-mystic small">Sair</button>
+        </header>
+
+        <nav class="tabs">
+            <button class="tab-btn active" data-target="tab-grimoire">📖 Grimório</button>
+            <button class="tab-btn" data-target="tab-dice">🎲 Rolagem de Dados</button>
+            <button class="tab-btn" data-target="tab-calc">🧮 Calculadora</button>
+            <button class="tab-btn" data-target="tab-craft">🛠️ Forja & Inventário</button>
+            <button class="tab-btn" data-target="tab-perfil">👤 Perfil e Missões</button>
+            <button class="tab-btn" data-target="tab-mural">📜 Fitas & Arquivos</button>
+            <button class="tab-btn" id="btn-tab-gm" data-target="tab-gm">👁️ Olho do Mestre</button>
+        </nav>
+
+        <main class="alive-container">
+            <!-- ABA: GRIMÓRIO -->
+            <div id="tab-grimoire" class="tab-content active">
+                <section class="table-room">
+                    <header class="table-room-head"><div><p class="eyebrow">MESA DE CAMPANHA</p><h2>O campo está preparado</h2><p>Uma carta por turno · combine a cor ativa ou use uma carta coringa · o Mestre prepara eventos.</p></div><span id="shared-table-status" class="table-sync-status">Conectando à mesa…</span></header>
+                    <div class="table-room-layout">
+                        <div class="tabletop-felt">
+                            <div class="tabletop-lane player-lane" data-table-side="jogadores"><div class="tabletop-lane-head"><span>♟</span><div><b>Jogadores</b><small id="player-table-count">0 cartas</small></div></div><div class="tabletop-cards" id="mesa-jogadores"><p class="table-empty">Aguardando cartas dos jogadores…</p></div></div>
+                            <div class="tabletop-center"><small>DESCARTE · COR ATIVA</small><div id="top-card-display" class="top-card-display"><span>?</span><b>Sem carta</b><em>Jogue para abrir a partida</em></div><span class="tabletop-vs">VS</span></div>
+                            <div class="tabletop-lane gm-lane" data-table-side="mestre"><div class="tabletop-lane-head"><span>♛</span><div><b>Mestre</b><small id="gm-table-count">0 cartas</small></div></div><div class="tabletop-cards" id="mesa-mestre"><p class="table-empty">Aguardando cartas do Mestre…</p></div></div>
+                        </div>
+                        <aside class="hand-corner"><div class="hand-corner-title"><span>🂠</span><div><b>Sua mão</b><small><span id="hand-summary-count">0/5</span> cartas escolhidas</small></div></div><div id="hand-preview" class="hand-preview"><p>Abra o grimório e escolha cartas para a mão.</p></div><div class="turn-status-card"><span>VEZ DE</span><b id="active-player-name">Aguardando o Mestre</b><small id="turn-detail">A partida ainda não começou.</small></div><button id="btn-end-turn" class="btn-end-turn" disabled>Finalizar turno</button><button id="btn-open-grimoire" class="btn-mystic hand-open-button">Abrir grimório</button><button id="btn-open-master-tools" class="master-open-button hidden">Ferramentas do Mestre</button></aside>
+                    </div>
+                </section>
+                <details class="ability-history"><summary><span>📜 Histórico de cartas usadas</span><small>Registro permanente</small></summary><section class="ability-table alive-container"><div id="campo-batalha" class="ability-board" aria-live="polite"><p class="text-muted board-empty">As cartas usadas ficam registradas aqui.</p></div></section></details>
+            </div>
+
+            <div id="popup-grimoire" class="grimoire-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="grimoire-popup-title">
+                <section class="grimoire-window">
+                    <header class="grimoire-window-head"><div><p class="eyebrow">COLEÇÃO · MÃO · CRIAÇÃO</p><h2 id="grimoire-popup-title">Grimório de cartas</h2><p>Organize sua mão e escolha o que levar à mesa.</p></div><button type="button" id="close-grimoire" class="grimoire-close" aria-label="Fechar grimório">×</button></header>
+                    <nav class="grimoire-tabs" aria-label="Seções do grimório"><button type="button" data-grimoire-tab="mao" class="active">Minha mão <b id="hand-tab-count">0</b></button><button type="button" data-grimoire-tab="colecao">Coleção <b id="deck-card-count">0</b></button><button type="button" data-grimoire-tab="criar">Criar cartas</button><button type="button" data-grimoire-tab="mestre" id="grimoire-master-tab" class="hidden">Painel do Mestre</button></nav>
+                    <div class="grimoire-panes">
+                        <section id="grimoire-pane-mao" class="grimoire-pane"><div class="pane-heading"><div><h3>Cartas na sua mão</h3><p>Jogue uma carta no seu turno ou compre uma da coleção.</p></div><span class="hand-limit-chip"><b id="hand-count-large">0</b> / 5</span></div><button type="button" id="btn-draw-card" class="btn-draw-card">Comprar 1 carta · encerrar turno</button><div id="hand-cards" class="hand-card-grid"></div><p id="hand-feedback" class="hand-feedback" aria-live="polite"></p></section>
+                        <section id="grimoire-pane-colecao" class="grimoire-pane hidden"><div class="pane-heading"><div><h3>Sua coleção</h3><p>Adicione ou retire cartas da mão sem perder a carta original.</p></div><button type="button" id="btn-add-spell" class="btn-mystic deck-add">＋ Criar carta</button></div><label class="deck-search"><span aria-hidden="true">⌕</span><input type="text" id="search-input" class="input-mystic" placeholder="Buscar por nome, cor ou efeito…" aria-label="Buscar cartas"></label><div class="grid deck-grid" id="lista-efeitos" aria-label="Coleção de cartas"></div></section>
+                        <section id="grimoire-pane-criar" class="grimoire-pane hidden"><div class="create-card-panel"><span class="create-card-icon">✧</span><div><p class="eyebrow">NOVA PÁGINA</p><h3>Crie uma carta para sua coleção</h3><p>Defina nome, tinta, receita e efeito. A carta será salva no seu grimório e poderá entrar na sua mão.</p><button type="button" id="btn-standard-create" class="btn-mystic">＋ Abrir criação de carta</button></div></div></section>
+                        <section id="grimoire-pane-mestre" class="grimoire-pane hidden"><div class="master-game-start"><div><b>Partida</b><small id="master-game-feedback">Configure a ordem dos personagens e inicie os turnos.</small></div><button type="button" id="btn-start-card-game" class="btn-mystic">Iniciar partida</button></div><div class="pane-heading"><div><h3>Preparar evento do Mestre</h3><p>Monte um ataque ou problema, escolha o alvo e, se quiser, aplique uma marca.</p></div></div><div class="master-card-form"><label>Tipo do evento<select id="gm-card-kind" class="input-mystic"><option value="ataque">Ataque</option><option value="problema">Problema / complicação</option></select></label><label>Alvo<select id="gm-card-target-kind" class="input-mystic"><option value="jogador">Jogador</option><option value="npc">NPC</option></select></label><label class="master-target-field">Personagem / NPC<select id="gm-card-target" class="input-mystic"><option value="">Carregando alvos…</option></select></label><label>Nome da carta<input id="gm-card-name" class="input-mystic" maxlength="70" placeholder="Ex.: Emboscada na ponte"></label><label class="master-form-wide">Efeito / situação<textarea id="gm-card-effect" class="input-mystic" rows="3" placeholder="Descreva o ataque ou problema que entra em cena"></textarea></label><label>Marca opcional<select id="gm-card-marker" class="input-mystic"><option value="nenhum">Sem marca</option><option value="ferimento_grave">Ferimento grave</option><option value="ferimento_critico">Ferimento crítico</option><option value="sanidade">Estresse / perda de sanidade</option></select></label><label id="gm-sanity-amount-wrap" class="hidden">Pontos de estresse<input id="gm-sanity-amount" class="input-mystic" type="number" min="1" max="100" value="5"></label><button type="button" id="btn-create-master-event" class="btn-mystic master-submit">Preparar carta na mesa</button><p id="gm-card-feedback" class="master-form-feedback" aria-live="polite"></p></div></section>
+                    </div>
+                </section>
+            </div>
+
+            <!-- ABA: DADOS -->
+            <div id="tab-dice" class="tab-content hidden text-center">
+                <h2>Rolagem de Destino</h2>
+                <div class="dice-controls">
+                    <input type="number" id="dice-qtd" class="input-mystic mod-input" placeholder="Qtd" value="1" min="1">
+                    <select id="dice-type" class="input-mystic">
+                        <option value="4">D4</option>
+                        <option value="6">D6</option>
+                        <option value="8">D8</option>
+                        <option value="10">D10</option>
+                        <option value="12">D12</option>
+                        <option value="20" selected>D20</option>
+                        <option value="100">D100</option>
+                    </select>
+                    <select id="mod-sign" class="input-mystic mod-input" style="width: 60px; text-align: center;">
+                        <option value="+">+</option>
+                        <option value="-">-</option>
+                    </select>
+                    <input type="number" id="dice-mod" class="input-mystic mod-input" placeholder="Mod" value="0">
+                </div>
+                <button id="btn-roll" class="btn-mystic mt-15">Rolar Destino</button>
+                <div id="dice-result" class="dice-result mt-15">-</div>
+                <div id="dice-log" class="dice-log mt-15"></div>
+                <button id="btn-share-dice" class="btn-mystic mt-15" style="background: linear-gradient(180deg, #128C7E, #075E54); border-color: #25D366; color: #fff;">Enviar pro Zap 📱</button>
+            </div>
+
+            <!-- ABA: CALCULADORA -->
+            <div id="tab-calc" class="tab-content hidden text-center">
+                <h2>Cálculos de Sistema</h2>
+                <p class="text-muted">Insira expressões matemáticas (ex: 15 * 2 + 10)</p>
+                <input type="text" id="calc-input" class="input-mystic w-full text-center mt-15" placeholder="Expressão...">
+                <button id="btn-calc" class="btn-mystic mt-15">Calcular</button>
+                <div id="calc-result" class="dice-result mt-15">-</div>
+                <button id="btn-share-calc" class="btn-mystic mt-15" style="background: linear-gradient(180deg, #128C7E, #075E54); border-color: #25D366; color: #fff;">Enviar pro Zap 📱</button>
+            </div>
+
+            <!-- ABA: FORJA MÍSTICA (CRAFTING) -->
+            <div id="tab-craft" class="tab-content hidden text-center">
+                <h2>Mesa de Transmutação</h2>
+                <p class="text-muted">Selecione os itens do inventário para o círculo de fusão.</p>
+
+                <div class="crafting-area" id="crafting-area">
+                    <canvas id="craft-canvas" class="craft-canvas"></canvas>
+                    <div id="forja-lista" class="forja-lista"></div>
+                    <div id="status-forja" class="text-muted">Adicione itens do inventário </div>
+                    
+                    <div class="craft-result-setup mt-15" style="display: flex; gap: 10px; position: relative; z-index: 2;">
+                        <input type="text" id="craft-emoji-input" class="input-mystic" placeholder="Ícone (ex: 🗡️)" maxlength="2" style="width: 100px; text-align: center; font-size: 1.5rem;">
+                        <input type="text" id="craft-result-name" class="input-mystic w-full" placeholder="Nome do Item Forjado">
+                    </div>
+
+                    <button id="btn-craft-visual" class="btn-mystic w-full mt-15" style="position: relative; z-index: 2;">Forjar Item</button>
+                </div>
+
+                <h3 class="mt-15" style="color: var(--borda-ouro); border-bottom: 1px solid var(--borda-ouro); padding-bottom: 5px; text-align: left;">Bolsa de Componentes</h3>
+                
+                <div class="inventory-grid" id="craft-inventory-grid"></div>
+                <button id="btn-add-material" class="btn-mystic small mt-15" style="background: var(--painel-fundo);">+ Coletar Material Base</button>
+            </div>
+
+            <!-- ABA PERFIL -->
+            <div id="tab-perfil" class="tab-content hidden">
+                <div class="perfil-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    
+                    <div class="card-perfil" style="background: #2a2a2a; padding: 15px; border-radius: 8px;">
+                        <h3>Ficha Ativa: <span id="nome-personagem">Nenhum</span></h3>
+                        <p>Sistema: <span id="sistema-personagem">Nenhum</span></p>
+                        
+                        <div id="imagem-perfil-ficha"></div>
+                        <label for="medidor-sanidade">Sanidade:</label>
+                        <progress id="medidor-sanidade" value="100" max="100" style="width: 100%;"></progress>
+                        
+                        <div style="margin: 10px 0; padding: 10px; background: #111; border-radius: 5px; border: 1px dashed #555;">
+                            <p style="font-size: 0.85em; color: #aaa; margin-bottom: 5px;">Importar ficha (.json ou .txt):</p>
+                            <input type="file" id="upload-ficha" accept=".json, .txt" style="color: white; font-size: 0.8rem; width: 100%;">
+                            <p id="status-importacao" style="color: #88aaff; font-size: 0.8em; margin-top: 5px;"></p>
+                        </div>
+                        
+                        <div style="display: flex; gap: 15px; margin: 15px 0;">
+                            <div style="background: #224422; padding: 10px; border-radius: 5px; flex: 1; text-align: center;">
+                                <strong>XP (Experiência)</strong><br>
+                                <span id="display-xp" style="font-size: 1.5em; font-weight: bold;">0</span>
+                            </div>
+                        </div>
+
+                        <div id="area-level-up" class="hidden" style="background: #aa8800; padding: 10px; color: black; border-radius: 5px; margin-bottom: 15px; text-align: center;">
+                            <strong>Subiu de Nível!</strong><br>
+                            <button id="btn-upar-atributo" style="margin-top: 5px; padding: 5px; cursor: pointer;">Distribuir +1 Ponto</button>
+                        </div>
+
+                        <div id="botoes-atributos" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;"></div>
+
+                        <details class="painel-retratil" style="margin-top: 15px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 5px; border: 1px solid #444;">
+                            <summary style="cursor: pointer; color: #aaa; font-weight: bold;">⚙️ Editar Atributos da Ficha</summary>
+                            <div id="lista-editor-atributos" style="margin-top: 15px; display: flex; flex-direction: column; gap: 8px;"></div>
+                            <div style="display: flex; gap: 10px; margin-top: 15px;">
+                                <button id="btn-novo-atributo" class="btn-mystic small" style="flex: 1; background: var(--painel-fundo);">+ Novo Atributo</button>
+                                <button id="btn-salvar-editor" class="btn-mystic small" style="flex: 1; background: #224422;">💾 Salvar Ficha</button>
+                            </div>
+                        </details>
+                    </div>
+
+                    <div class="card-missoes" style="background: #222233; padding: 15px; border-radius: 8px;">
+                        <h3>Quadro de Missões</h3>
+                        <div id="lista-missoes" style="min-height: 100px; margin-bottom: 15px; border: 1px solid #444; padding: 10px; border-radius: 5px;"></div>
+                        
+                        <div id="gm-controls" class="hidden" style="background: #222; padding: 15px; border: 1px solid #444; margin-top: 15px; border-radius: 5px;">
+                            <h3>Painel do Mestre</h3>
+                            <label for="gm-select-alvo"><strong>Alvo Selecionado:</strong></label>
+                            <select id="gm-select-alvo" style="padding: 5px; background: #333; color: white; border: 1px solid #555; margin-bottom: 10px; width: 100%;">
+                                <option value="">Carregando jogadores...</option>
+                            </select>
+                
+                            <div style="margin-bottom: 10px; display: flex; gap: 5px; align-items: center;">
+                                <input type="number" id="gm-mod-valor" placeholder="Valor (Ex: 1)" style="padding: 5px; width: 35%;">
+                                <button id="btn-gm-xp" style="padding: 5px; cursor: pointer;">Dar XP</button>
+                                <button id="btn-gm-ferimento" class="btn-mestre" style="padding: 5px; cursor: pointer;">Gerenciar Ferimentos</button>
+                            </div>
+                            
+                            <div style="margin-top: 15px; border-top: 1px solid #444; padding-top: 10px;">
+                                <input type="text" id="gm-missao-texto" placeholder="Escreva uma nova missão..." class="input-mystic w-full" style="margin-bottom: 5px; width: 100%; padding: 5px; background: #333; color: white; border: 1px solid #555;">
+                                <button id="btn-add-missao" class="btn-mystic w-full" style="width: 100%; padding: 5px; cursor: pointer;">Adicionar Missão ao Mural</button>
+                            </div>
+                            
+                            <div class="actions" style="margin-top: 15px;">
+                                <div style="display: flex; gap: 5px; margin-bottom: 10px;">
+                                    <select id="gm-select-estado-fisico" class="input-mystic w-full">
+                                        <option value="saudavel">Físico: Saudável</option>
+                                        <option value="ferido">Sangramento: Ferido</option>
+                                        <option value="grave">Sangramento: Grave</option>
+                                        <option value="desacordado">Sangramento: Desacordado</option>
+                                    </select>
+                    
+                                    <select id="gm-select-estado-mental" class="input-mystic w-full">
+                                        <option value="sao">Mental: São</option>
+                                        <option value="insano">Psicológico: Insano</option>
+                                        <option value="fragmentado">Psicológico: Fragmentado</option>
+                                    </select>
+                                </div>
+                                <button id="btn-gm-mudar-estado" class="btn-mystic">Aplicar Novo Estado</button>
+                                <button id="btn-gm-falar-player" class="btn-mystic" style="background: linear-gradient(180deg, #104e8b, #111);">Falar Pelo Jogador</button>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- ABA: CHAT -->
+            <div id="tab-chat" class="tab-content hidden chat-container" aria-hidden="true" style="display:none !important;">
+                <input type="text" id="input-pesquisa-chat" placeholder="Pesquisar mensagens no canal..." class="input-mystic w-full mb-10 hidden">
+                <button onclick="alternarPesquisaChat()" class="btn-mystic" style="margin-bottom: 10px;">🔍 Pesquisar</button>
+                
+                <div id="mute-warning" style="display: none; background: rgba(255,0,0,0.2); border: 1px solid red; color: #ffcccc; padding: 10px; text-align: center; font-weight: bold; margin-bottom: 5px;">
+                    Você foi silenciado! Tempo: <span id="mute-timer">00:00</span>
+                </div>
+                 
+                <div class="channels-navbar">  
+                    <div id="channel-list" style="display: flex; gap: 5px; overflow-x: auto; flex: 1;"></div>
+                    <div class="botoes-direita">
+                        <button onclick="solicitarNovoCanal()" class="btn-mystic btn-add-channel">+ Criar Sala</button>
+                        <button id="btn-anti-glitch" class="btn-mystic">👁️ Remover Efeitos</button>
+                    </div>
+                </div>
+
+                <div id="global-audio-container" style="display: none; background: #000; border: 1px solid var(--borda-ouro); padding: 5px; border-radius: 5px; margin-bottom: 5px; text-align: center;">
+                    <span style="color: var(--borda-ouro); font-size: 0.8rem; margin-bottom: 5px; display: block;">🎵 Som Ambiente</span>
+                    <iframe id="youtube-player" width="100%" height="80" src="" frameborder="0" allow="autoplay" allowfullscreen></iframe>
+                </div>
+
+                <div class="chat-main" id="chat-fundo" style="background-size: cover; background-position: center; position: relative;">
+                    <div style="position: absolute; top:0; left:0; width:100%; height:100%; background:rgba(10, 10, 15, 0.75); z-index: 0; pointer-events: none;"></div>
+                    <div id="chat-messages" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding-right: 5px; position: relative; z-index: 1;"></div>
+                    <div id="tab-tradutor" class="tab-content hidden">...</div>
+                </div>
+
+                <div id="reply-preview" class="hidden" style="background: rgba(200, 170, 109, 0.2); border-left: 3px solid var(--borda-ouro); padding: 5px 10px; font-size: 0.8rem; display: flex; justify-content: space-between; margin-top: 5px; border-radius: 4px;">
+                    <span>Respondendo a <strong id="reply-user" style="color: var(--borda-ouro-clara);"></strong></span>
+                    <button onclick="cancelarResposta()" style="background: none; border: none; color: #ff4444; cursor: pointer; font-weight: bold;">X</button>
+                </div>
+
+                <div style="display: flex; gap: 8px; margin-top: 10px; align-items: center;">
+                    <input type="file" id="upload-midia" style="display:none;" accept="image/*">
+                    <button onclick="document.getElementById('upload-midia').click()" class="btn-mystic" style="padding: 10px; font-size: 1.2rem;" title="Anexar Imagem">📎</button>
+                    <textarea id="chat-input" class="input-mystic w-full" placeholder="Mensagem... Enter quebra linha; Enter duas vezes envia" rows="1" style="resize: none; overflow-y: hidden;"></textarea>
+                    <button id="btn-send-chat" class="btn-mystic">Enviar</button>
+                    <button id="btn-gm-chat-menu" class="hidden btn-mystic" onclick="abrirModalGmChat()" style="background: #4a0000; border-color: #ff4444;" title="Painel do Mestre">👑</button>
+                </div>
+            </div>
+    
+            <!-- ABA: LOG DO MESTRE -->
+            <div id="tab-gm" class="tab-content hidden text-center">
+                <h2>Registros</h2>
+                <section class="alive-container gm-channel-admin" style="margin:15px 0; text-align:left;">
+                    <h3>Administração de salas</h3>
+                    <h4>Pedidos aguardando aprovação</h4>
+                    <div id="gm-pending-list">Nenhuma sala aguardando.</div>
+                    <h4>Salas aprovadas</h4>
+                    <div id="gm-channel-admin-list">Carregando salas…</div>
+                </section>
+                <div id="master-log-container" class="dice-log mt-15" style="max-height: 400px; text-align: left;">
+                    <!-- Logs aparecerão aqui -->
+                </div>
+                <button id="btn-clear-log" class="btn-mystic mt-15" style="background: var(--cor-vermelha);">Purgar Registros</button>
+            </div>
+            
+            <!-- ABA: MURAL -->
+            <div id="tab-mural" class="tab-content hidden text-center">
+                <h2>Arquivos e Fitas</h2>
+                <p class="text-muted">Documentos, fotos e gravações encontradas pelas campanhas.</p>
+                
+                <div id="gm-upload-board" class="hidden alive-container" style="margin-bottom: 20px; border-color: #ff4444;">
+                    <h3 style="color: #ffcccc; margin-top:0;">👑 Postar no Mural (Mestre)</h3>
+                    <input type="text" id="titulo-arquivo" class="input-mystic w-full mb-10" placeholder="Título da Fita / Documento">
+                    <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+                        <input type="file" id="upload-mural" style="display:none;" accept="image/*">
+                        <button onclick="document.getElementById('upload-mural').click()" class="btn-mystic" style="padding: 10px; font-size: 1.2rem;" title="Subir Imagem da Galeria">📎</button>
+                        <input type="text" id="link-arquivo" class="input-mystic w-full" placeholder="Cole link de imagem/vídeo ou envie imagem pelo 📎">
+                    </div>
+                    <button onclick="postarArquivoMestre()" class="btn-mystic w-full">Gravar Fita</button>
+                </div>
+
+                <div class="grid" id="mural-fitas-container"></div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modais do Sistema -->
+    <div id="modal-gm-chat-controls" class="modal">
+        <div class="modal-content alive-container" style="max-width: 600px;">
+            <span class="close-btn" onclick="fecharModalGmChat()">&times;</span>
+            <h2 style="color: #ffcccc;">👑 Controles do Sistema VTT</h2>
+            
+            <div class="gm-tools-grid">
+                <div>
+                    <h4 style="color: var(--borda-ouro); border-bottom: 1px solid #555;">Cenário & Ambiente</h4>
+                    <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+                        <input type="file" id="upload-chat-bg" style="display:none;" accept="image/*">
+                        <button onclick="document.getElementById('upload-chat-bg').click()" class="btn-mystic" style="padding: 10px; font-size: 1.2rem;" title="Subir Fundo da Galeria">📎</button>
+                        <input type="text" id="input-chat-bg" class="input-mystic w-full" placeholder="Link Fundo ou suba pelo 📎">
+                    </div>
+                    <button onclick="alterarFundoChat()" class="btn-mystic w-full mb-10" style="font-size: 0.8rem;">Aplicar Cenário</button>
+                    <button onclick="abrirModalAudio()" class="btn-mystic w-full" style="background: #aa8800; font-size: 0.8rem;">🎵 Tocar Música (YouTube)</button>
+                    
+                    <h4 style="color: var(--borda-ouro); border-bottom: 1px solid #555; margin-top: 15px;">Salas Pendentes</h4>
+                    <div class="text-muted">Use a aba do Mestre para aprovar ou excluir salas.</div>
+                </div>
+
+                <div>
+                    <h4 style="color: var(--borda-ouro); border-bottom: 1px solid #555;">Sistema de Atores </h4>
+                    <select id="select-npc-salvo" class="input-mystic w-full mb-10"><option value="">👤 Falar como Mim Mesmo</option></select>
+                    <input type="text" id="novo-npc-nome" class="input-mystic w-full mb-10" placeholder="Nome do Novo NPC">
+                    <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+                        <input type="file" id="upload-npc-foto" style="display:none;" accept="image/*">
+                        <button onclick="document.getElementById('upload-npc-foto').click()" class="btn-mystic" style="padding: 10px; font-size: 1.2rem;" title="Subir Foto do NPC">📎</button>
+                        <input type="text" id="novo-npc-foto" class="input-mystic w-full" placeholder="Link da Foto ou suba pelo 📎">
+                    </div>
+                    <button onclick="salvarNovoNPC()" class="btn-mystic w-full" style="background: #114411; font-size: 0.8rem;">💾 Salvar e Equipar NPC</button>
+                </div>
+            </div>
+            
+            <div style="border-top: 1px dashed #ff4444; margin-top: 15px; padding-top: 15px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                <span style="color: #ffcccc; font-size: 0.85rem;">Canal Rolagens:</span>
+                <select id="gm-roll-dest" class="input-mystic" style="flex:1;" onchange="mudarDestinoRolagens(this.value)"></select>
+                
+                <input type="text" id="mute-player-name" class="input-mystic" placeholder="Mutar Jogador" style="width: 120px;">
+                <input type="number" id="mute-time" class="input-mystic" placeholder="Min" style="width: 60px;">
+                <button onclick="silenciarJogador()" class="btn-mystic" style="background: #660000; font-size: 0.8rem;">Mute</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Adicionar Magia -->
+    <div id="modal-add" class="modal">
+        <div class="modal-content alive-container">
+            <span class="close-btn" id="close-add-modal">&times;</span>
+            <h2>Forjar Nova Magia/Item</h2>
+            <input type="text" id="new-nome" class="input-mystic w-full mb-10" placeholder="Nome">
+            <select id="new-cor" class="input-mystic w-full mb-10">
+                <option value="vermelha">Vermelho (Ataque)</option>
+                <option value="azul">Azul (Espiritual)</option>
+                <option value="amarela">Amarela (Cura)</option>
+                <option value="preta">Preta (Físico)</option>
+                <option value="branca">Branca (Vazio)</option>
+                <option value="mescla">Mescla (Híbrida)</option>
+            </select>
+            <input type="text" id="new-receita" class="input-mystic w-full mb-10" placeholder="Receita / Componentes">
+            <textarea id="new-efeito" class="input-mystic w-full mb-10" placeholder="Efeito detalhado..." rows="4"></textarea>
+            <button id="btn-save-spell" class="btn-mystic w-full">Gravar no Grimório</button>
+        </div>
+    </div>
+
+    <!-- Modal Detalhes da Magia -->
+    <div id="modal-view" class="modal">
+        <div class="modal-content alive-container">
+            <span class="close-btn" id="close-view-modal">&times;</span>
+            <h2 id="view-titulo"></h2>
+            <p><strong>Tipo/Cor:</strong> <span id="view-cor"></span></p>
+            <p><strong>Receita:</strong> <span id="view-receita"></span></p>
+            <p><strong>Efeito:</strong> <span id="view-efeito"></span></p>
+            <div class="ability-roll-select"><strong>Rolagem KULT: 2D10</strong><label for="ability-operator">Atributo</label><select id="ability-operator" class="input-mystic" aria-label="Somar ou subtrair"><option value="+">Somar +</option><option value="-">Subtrair −</option></select><select id="ability-attribute" class="input-mystic" aria-label="Atributo do personagem"><option value="0">Sem atributo (0)</option></select><output id="ability-formula-preview" class="formula-preview">2D10 = 2–20</output></div>
+            <button id="btn-delete-spell" class="btn-mystic w-full mt-15" style="background: var(--cor-vermelha);">Rasgar Página (Apagar)</button>
+        </div>
+    </div>
+
+    <!-- Modal Áudio Ambiente -->
+    <div id="audio-modal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); justify-content:center; align-items:center; z-index:9999;">
+        <div class="modal-content alive-container" style="max-width: 400px; text-align:center; background:#111; padding:20px; border-radius:8px;">
+            <span class="close-btn" onclick="fecharModalAudio()" style="float:right; cursor:pointer; color:#fff; font-size:1.2rem;">&times;</span>
+            <h3 style="color: var(--borda-ouro); margin-top:0;">🎵 Som Ambiente (YouTube)</h3>
+            <p class="text-muted" style="font-size:0.8rem;">Cole o link do YouTube para sincronizar com todos da sala:</p>
+            <input type="text" id="youtube-url" class="input-mystic w-full mb-10" placeholder="https://youtube.com/watch?v=...">
+            <div style="display: flex; gap: 10px; margin-top: 15px;">
+                <button onclick="sincronizarAudio()" class="btn-mystic w-full" style="background: #114411;">Tocar para Todos</button>
+                <button onclick="pararAudio()" class="btn-mystic w-full" style="background: #660000;">Parar Música</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Autenticação do Mestre -->
+    <div id="modal-gm-auth" class="modal">
+        <div class="modal-content alive-container text-center">
+            <span class="close-btn" id="close-gm-modal">&times;</span>
+            <h2 id="gm-auth-title">O Selo do Mestre</h2>
+            <p class="text-muted" id="gm-auth-desc">Acesso restrito aos arquitetos do destino.</p>
+            <input type="password" id="gm-password-input" class="input-mystic w-full mb-10" placeholder="Digite a Senha Mestra">
+            <button id="btn-submit-gm-auth" class="btn-mystic w-full">Desbloquear Visão</button>
+        </div>
+    </div>
+    
+    <!-- Modal Criar Sala -->
+    <div id="modal-criar-sala" class="modal">
+        <div class="modal-content alive-container">
+            <span class="close-btn" onclick="document.getElementById('modal-criar-sala').style.display='none'">&times;</span>
+            <h2>Forjar Novo Canal</h2>
+            <input type="text" id="novo-canal-nome" class="input-mystic w-full mb-10" placeholder="Nome da Sala (ex: Porão Escuro)">
+            
+            <label style="color: #aaa; font-size: 0.8rem;">
+                <input type="checkbox" id="novo-canal-privado" onchange="document.getElementById('box-senha-canal').style.display = this.checked ? 'block' : 'none'"> Sala Privada (Requer Senha)
+            </label>
+            
+            <div id="box-senha-canal" style="display: none; margin-top: 10px;">
+                <input type="password" id="novo-canal-senha" class="input-mystic w-full mb-10" placeholder="Senha da Sala">
+            </div>
+            
+            <button onclick="enviarSugestaoCanal()" class="btn-mystic w-full mt-15">Sugerir Sala ao Mestre</button>
+        </div>
+    </div>
+
+    <!-- Modal Desbloquear Sala Privada -->
+    <div id="modal-senha-sala" class="modal">
+        <div class="modal-content alive-container text-center">
+            <span class="close-btn" onclick="document.getElementById('modal-senha-sala').style.display='none'">&times;</span>
+            <h2 style="color: var(--borda-ouro);">Sala Trancada</h2>
+            <input type="password" id="input-tentativa-senha" class="input-mystic w-full mb-10" placeholder="Digite a Senha">
+            <button onclick="tentarDesbloquearSala()" class="btn-mystic w-full">Quebrar Selo</button>
+        </div>
+    </div>
+
+    <div id="ability-use-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="ability-use-title">
+        <div class="modal-content alive-container ability-use-card">
+            <button class="close-btn" id="ability-use-close" aria-label="Fechar">&times;</button>
+            <p class="eyebrow">AÇÃO CONCLUÍDA</p><h2 id="ability-use-title">Habilidade</h2>
+            <p id="ability-use-type" class="ability-type-label"></p>
+            <p id="ability-use-description"></p>
+            <div class="ability-roll-result" id="ability-use-result"></div>
+            <p id="ability-use-detail" class="text-muted"></p>
+            <div class="ability-use-actions"><button id="ability-share-whatsapp" class="btn-mystic whatsapp-btn">Enviar pelo WhatsApp ↗</button><button id="ability-use-ok" class="btn-mystic">Fechar</button></div>
+        </div>
+    </div>
+
+    <script type="module" src="app.js"></script>
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"1954b47c125f43f8b4338b3c4f804e4f","spa":2}' crossorigin="anonymous"></script>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a4c80b57dbc2df3e',t:'MTc5MjMzMTc2NA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
