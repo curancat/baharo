@@ -2,7 +2,12 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#111714">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="app-icon-192.png">
+    <link rel="manifest" href="manifest.webmanifest">
     <title>O Grimório Vivo</title>
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link rel="stylesheet" href="style.css">
@@ -22,7 +27,7 @@
     <div id="app-screen" class="screen hidden">
         <header class="alive-container">
             <h1 id="user-title">Grimório</h1>
-            <button id="btn-logout" class="btn-mystic small">Sair</button>
+            <div class="app-header-actions"><button id="btn-install-app" class="btn-mystic small hidden" type="button">Instalar app</button><button id="btn-logout" class="btn-mystic small">Sair</button></div>
         </header>
 
         <nav class="tabs">
@@ -38,6 +43,7 @@
         </nav>
 
         <main class="alive-container">
+            <section id="temporal-approval-panel" class="temporal-approval-panel hidden" aria-live="polite"><p class="eyebrow">PROPOSTA DE YUKI · LINHA TEMPORAL</p><h2>Um eco pede aprovação</h2><div id="temporal-approval-list"></div></section>
             <!-- ABA: GRIMÓRIO -->
             <div id="tab-grimoire" class="tab-content active">
                 <section class="table-room">
@@ -213,24 +219,29 @@
             <section id="tab-yuki-workshop" class="tab-content hidden yuki-workshop-tab-content" aria-label="Oficina particular do relógio de Yuki">
 <section id="yuki-clock-workshop" class="yuki-clock-workshop hidden" aria-labelledby="yuki-clock-title">
                     <header class="yuki-workshop-head"><div><p class="eyebrow">OFICINA PARTICULAR · MECÂNICA TEMPORAL</p><h2 id="yuki-clock-title">O relógio de bolso de Yuki</h2><p>Sem o relógio, Yuki perde o rumo do tempo: o tempo o alcança, envelhecendo-o até a morte. Pressione o botão, gire o ponteiro ou integre componentes da bolsa para modificar o mecanismo.</p></div><div class="yuki-watch-emblem">⌚</div></header>
+                    <section class="yuki-time-health" aria-label="Reserva temporal de Yuki"><div class="yuki-vital-head"><span>⌛ RESERVA VITAL</span><strong><span id="yuki-clock-life-value">100</span> / 100</strong></div><progress id="yuki-clock-life-bar" max="100" value="100"></progress><small>Ativações consomem tempo. Ao zerar, Yuki morre e reinicia o ciclo; relógios desbloqueados e receitas ficam preservados. Ócio não reduz a barra.</small><span class="yuki-death-counter">Ciclos reiniciados: <b id="yuki-clock-deaths">0</b></span></section>
                     <div class="yuki-workshop-grid">
                         <section class="yuki-workbench-card"><h3>Acionar o relógio</h3><label>Configuração ativa<select id="yuki-clock-active" class="input-mystic"></select></label><p id="yuki-clock-module-description" class="yuki-clock-module-description"></p>
                             <div class="yuki-watch-control"><div class="yuki-clock-face"><span class="yuki-clock-mark mark-12">12</span><span class="yuki-clock-mark mark-3">3</span><span class="yuki-clock-mark mark-6">6</span><span class="yuki-clock-mark mark-9">9</span><span id="yuki-clock-needle" class="yuki-clock-needle"></span><span class="yuki-clock-center"></span></div>
-                                <label class="yuki-clock-range-label">Gire o ponteiro para ativar uma função<input id="yuki-clock-hand" type="range" min="0" max="359" value="0"><small class="yuki-clock-legend">12 Fragmentado · 3 Retrasar · 6 Retorno · 9 Alarme</small></label>
+                                <label class="yuki-clock-range-label">Gire o ponteiro para selecionar e acionar<input id="yuki-clock-hand" type="range" min="0" max="359" value="0"><small class="yuki-clock-legend">O mostrador tem dez posições; módulos ainda não montados não podem ser acionados.</small></label>
                             </div>
                             <label id="yuki-clock-action-field">Ação do modo Fragmentado<select id="yuki-clock-action" class="input-mystic"><option value="calm">Dose calmante</option><option value="rejuvenate">Rejuvenescer por alguns instantes</option><option value="advance">Avançar o tempo de um objeto</option><option value="assemble">Montar um pequeno equipamento</option></select></label>
                             <label>Objeto ou ponto marcado<input id="yuki-clock-target" class="input-mystic" maxlength="90" placeholder="Ex.: ferramenta, peça ou lugar"></label><p id="yuki-clock-marked" class="yuki-clock-marked">Nenhum ponto de retorno marcado.</p>
                             <div class="yuki-clock-actions"><button id="yuki-clock-mark" type="button" class="btn-mystic small">Marcar ponto de retorno</button><button id="yuki-clock-activate" type="button" class="btn-mystic">Pressionar o relógio</button></div>
                         </section>
-                        <section class="yuki-workbench-card"><h3>Modificar o mecanismo</h3><p class="text-muted">Escolha uma função e combine duas peças existentes na bolsa. As peças selecionadas serão instaladas no relógio.</p>
-                            <label>Função do módulo<select id="yuki-clock-build-type" class="input-mystic"><option value="retrasar">Relógio de retrasar · recua o próprio espaço</option><option value="retorno">Relógio retorno · teleporte a ponto marcado</option><option value="alarme">Relógio alarme · arma do relógio</option></select></label>
-                            <fieldset class="yuki-watch-parts"><legend>Peças da bolsa <small>selecione ao menos duas</small></legend><div id="yuki-clock-parts-list"><p class="text-muted">Carregando peças…</p></div></fieldset>
-                            <div class="yuki-clock-actions"><button id="yuki-clock-store-parts" type="button" class="btn-mystic small">Guardar selecionadas no compartimento</button><button id="yuki-clock-install" type="button" class="btn-mystic">Integrar peças ao relógio</button></div>
-                            <div class="yuki-watch-modules"><b>Compartimento interno</b><div id="yuki-clock-storage"></div></div>
-                            <div class="yuki-watch-modules"><b>Módulos instalados</b><div id="yuki-clock-module-list"></div></div>
+                        <section class="yuki-workbench-card"><h3>Dez mecanismos · receitas individuais</h3><p class="text-muted">Abra a receita do módulo que deseja montar. Cada mecanismo pede peças próprias da bolsa; se faltar alguma, adicione-a na Bolsa de Componentes com o nome exato da receita.</p><div id="yuki-clock-recipe-list" class="yuki-clock-recipe-list"></div>
+                            <div class="yuki-watch-modules"><b>Compartimento interno</b><div id="yuki-clock-storage"></div><button id="yuki-clock-open-storage" type="button" class="btn-mystic small">Guardar peças no Fragmentado</button></div><div class="yuki-watch-modules"><b>Módulos montados</b><div id="yuki-clock-module-list"></div></div>
                         </section>
                     </div>
+                    <section class="yuki-temporal-library"><header><div><p class="eyebrow">ARQUIVO TEMPORAL</p><h3>Ver ecos dos grimórios</h3><p>Yuki consulta cópias, prepara desvios e envia propostas. Alterações em grimórios alheios só entram após aprovação do dono; o relógio guarda a versão anterior para reversão.</p></div><button id="yuki-clock-load-grimoires" type="button" class="btn-mystic small">Observar linhas</button></header>
+                        <div class="yuki-timeline-controls"><label>Jogador<select id="yuki-timeline-owner" class="input-mystic"><option value="">Escolha uma linha temporal</option></select></label><div id="yuki-timeline-cards" class="yuki-timeline-cards"><p class="text-muted">Carregue as linhas temporais para consultar os grimórios.</p></div></div>
+                        <section id="yuki-temporal-editor" class="yuki-temporal-editor hidden"><h4 id="yuki-temporal-card-title">Eco selecionado</h4><p id="yuki-temporal-card-before" class="yuki-temporal-copy"></p><label>Novo nome<input id="yuki-temporal-name" class="input-mystic" maxlength="100"></label><label>Nova descrição / efeito<textarea id="yuki-temporal-effect" class="input-mystic" rows="3" maxlength="1200"></textarea></label><label>Nova receita<input id="yuki-temporal-recipe" class="input-mystic" maxlength="300"></label><div class="yuki-clock-actions"><button id="yuki-temporal-propose" type="button" class="btn-mystic">Propor desvio ao jogador</button><button id="yuki-temporal-clone" type="button" class="btn-mystic small">Ecoar cópia no meu grimório</button></div></section>
+                        <div class="yuki-revision-history"><h4>Reversões possíveis</h4><div id="yuki-temporal-revisions"><p class="text-muted">Nenhum eco aprovado ainda.</p></div><h4>Âncoras e segundos congelados</h4><div id="yuki-temporal-snapshots"><p class="text-muted">Nenhum marco temporal guardado.</p></div></div>
+                    </section>
                     <p id="yuki-clock-status" class="yuki-clock-status" aria-live="polite">O mecanismo Fragmentado está ativo.</p>
+                    <dialog id="yuki-recipe-modal" class="yuki-recipe-modal"><header><div><p class="eyebrow">RECEITA TEMPORAL</p><h3 id="yuki-recipe-title">Mecanismo</h3></div><button id="yuki-recipe-close" type="button" class="yuki-modal-close" aria-label="Fechar receita">×</button></header><p id="yuki-recipe-description"></p><div id="yuki-recipe-ingredients" class="yuki-recipe-ingredients"></div><fieldset class="yuki-watch-parts"><legend>Peças exatas na bolsa <small>selecione os ingredientes pedidos</small></legend><div id="yuki-clock-parts-list"><p class="text-muted">Carregando peças…</p></div></fieldset><div class="yuki-clock-actions"><button id="yuki-clock-store-parts" type="button" class="btn-mystic small">Guardar selecionadas</button><button id="yuki-clock-install" type="button" class="btn-mystic">Montar este relógio</button></div></dialog>
+                    <dialog id="yuki-storage-modal" class="yuki-recipe-modal"><header><div><p class="eyebrow">COMPARTIMENTO DO FRAGMENTADO</p><h3>Guardar peças</h3></div><button id="yuki-storage-close" type="button" class="yuki-modal-close" aria-label="Fechar compartimento">×</button></header><p>Selecione as peças que Yuki quer guardar dentro do relógio. Elas sairão da bolsa e poderão ser consultadas aqui.</p><fieldset class="yuki-watch-parts"><legend>Bolsa de componentes</legend><div id="yuki-storage-parts-list"></div></fieldset><button id="yuki-storage-confirm" type="button" class="btn-mystic w-full">Guardar selecionadas</button></dialog>
+                    <dialog id="yuki-clock-popup" class="yuki-clock-popup"><div class="yuki-popup-rune">✧</div><p id="yuki-popup-kicker" class="eyebrow">PULSO TEMPORAL</p><h3 id="yuki-popup-title">O relógio desperta</h3><p id="yuki-popup-message"></p><div class="yuki-popup-bar"></div><button id="yuki-popup-continue" type="button" class="btn-mystic">Continuar</button></dialog>
                 </section>
             </section>
 
@@ -554,5 +565,6 @@
     </div>
 
     <script type="module" src="app.js"></script>
-</body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a577ae249c00b5fe',t:'MTc5NDE3MzQ0MA=='};var l=window.parent.location,o;try{o=new URL(l.origin).origin}catch(e){try{o=new URL(new URL(l.href).origin).origin}catch(e){o=''}}var u='/cdn-cgi/challenge-platform/scripts/jsd/main.js?ray=a577ae249c00b5fe',a=document.createElement('script');a.src=o?new URL(u,o).href:u;document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
+
