@@ -1,4 +1,4 @@
-const CACHE_NAME = 'grimorio-vivo-shell-v2';
+const CACHE_NAME = 'grimorio-vivo-shell-v3';
 const APP_SHELL = ['./', './index.html', './style.css', './app.js', './manifest.webmanifest', './favicon.svg', './app-icon.svg', './app-icon-192.png', './app-icon-512.png'];
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(APP_SHELL)).then(() => self.skipWaiting()));
